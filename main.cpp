@@ -1,11 +1,11 @@
 #include<iostream>
 
-class LinkedList {
+class LinkedList { // integer based LinkedList
 	private:
 		struct Node {
 			int item;
-			Node* next;
-			Node* prev;
+			Node* next; // next node
+			Node* prev; // previous node
 
 			Node(int item, Node* next=nullptr, Node* prev=nullptr) : item(item), next(next), prev(prev) {}
 
@@ -40,6 +40,22 @@ class LinkedList {
 
 		size_t get_size() {
 			return this->size;
+		}
+
+		// O(1) best case. O(n) worse case
+		bool search(int value) { // search for value
+			Node* headTemp = this->head;
+			Node* tailTemp = this->tail;
+
+			while(headTemp->next != tailTemp && headTemp->prev != tailTemp) {
+				if(headTemp->item == value || tailTemp->item == value)
+					return true;
+
+				headTemp = headTemp->next;
+				tailTemp = tailTemp->prev;
+			}
+
+			return false;
 		}
 		
 		void clear() { // O(n)
@@ -117,6 +133,7 @@ class LinkedList {
 			std::cout << "nullptr;\n";
 		}
 
+		// no idea why I added this LOL
 		void displayleft() { // O(n)
 			if(tail == nullptr)
 				throw std::runtime_error("Empty Linked list");
@@ -140,7 +157,9 @@ int main() {
 	x.pushleft(1);
 	x.push(3);
 	x.pushleft(0);
+	x.pushleft(-1);
 
 	x.display();
-	std::cout << x.get_size();
+	std::cout << x.search(0);
+	//std::cout << x.get_size();
 }
