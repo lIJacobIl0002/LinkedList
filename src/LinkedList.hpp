@@ -1,184 +1,229 @@
 #ifndef LINKEDLIST_HPP
 #define LINKEDLIST_HPP
 
-#include<iostream>
+#include <iostream>
 
-class LinkedList { // integer based LinkedList
+template <typename T>
+class LinkedList {
+public:
+	struct Node {
+		T item;
+
+		Node* next;
+		Node* prev;
+
+		Node(T item) : item(item),
+				next(nullptr), prev(nullptr)
+		{}
+	};
+
+	class EmptyLinkedList : public std::exception {
 	private:
-		struct Node {
-			int item;
-			Node* next; // next node
-			Node* prev; // previous node
-
-			Node(int item, Node* next=nullptr, Node* prev=nullptr) : item(item), next(next), prev(prev) {}
-
-		};
-		Node* head; // start of the linked list
-		Node* tail; // end of the linked list
-		size_t size; // size of the linked list
+		const char* msg;
 
 	public:
-		LinkedList() : head(nullptr), tail(nullptr), size(0) {}
-		~LinkedList() {
-			clear();
-		}
-		
-		// add element to the right
-		// 
-		void push(int value) { // O(1)
+		EmptyLinkedList(const char* msg) : msg(msg) {}
 
-			if(this->head == nullptr) {
-				Node* new_node = new Node(value);
-
-				this->head = new_node;
-				this->tail = new_node;
-			} else {
-				this->tail->next = new Node(value, nullptr, this->tail); 
-				this->tail = this->tail->next;
-			}
-
-			if(this->head->next == nullptr && this->tail != this->head)
-				this->head->next = this->tail;
-
-			size++;
+		const char* what() const noexcept override {
+			return msg;
 		}
 
-		// LinkedList size
-		// @returns size of linked list
-		size_t get_size() { 
-			return this->size;
-		}
+	};
 
-		// searchs for specified element in the linked list 
-		// @return true if found else false
-		bool search(int value) { // search for value
-			// O(1) best case. O(n) worse case
-			Node* headTemp = this->head;
-			Node* tailTemp = this->tail;
+	LinkedList();
+	~LinkedList();
 
-			while(headTemp->next != tailTemp && headTemp->prev != tailTemp) {
-				if(headTemp->item == value || tailTemp->item == value)
-					return true;
+	//push a value into the linked list
+	void push(T val);
 
-				headTemp = headTemp->next;
-				tailTemp = tailTemp->prev;
-			}
+	//push a value on the left side of the linked list
+	void pushleft(T val);
 
-			return false;
-		}
+	//search for a value in the linked list
+	bool search(T val);
 
-		// clear and free all nodes
-		void clear() { // O(n)
-			if(head == nullptr) return;
+	//remove and return the first item (on the right side)
+	T pop();
 
-			Node* temp;
+	//remove and return the first item (on the left side)
+	T popleft();
 
-			while(this->head) {
-				temp = this->head->next;
-				delete head;
-				head = temp;	
-			}
-		
-			head = nullptr;
-			tail = nullptr;
-			size = 0;
-		}
-		
-		// add element to the left of the list
-		void pushleft(int value) { // O(1)
-			if(head == nullptr)
-				throw std::runtime_error("Empty linked list");
+	//display the linked list (in this order: 1 -> 2 -> nullptr);
+	void display();
 
-			if(this->head == nullptr) {
-				Node* new_node = new Node(value);
+	//reverse the linked list
+	void reverse();
 
-				this->head = new_node;
-				this->tail = new_node;
+	//empty the linked list (will be cleared regardless once destructed)
+	void clear();
 
-			} else {
-				this->head->prev = new Node(value, this->head);
-				this->head = this->head->prev;
-			}
+	//get linked list size
+	size_t get_size();
 
-			size++;
-		}
+	// get linked list head
+	Node* get_head();
 
-		// remove element on the left
-		// @returns popped element 
-		int popleft() { // O(1)
-			if(head == nullptr)
-				throw std::runtime_error("Empty linked list");
+	// get linked list tail
+	Node* get_tail();
 
-			Node* current = this->head;
-			int value = current->item;
-
-			this->head = this->head->next;
-			
-			delete current;
-			size--;
-
-			return value;
-		}
-
-		int pop() { // O(1)
-			if(head == nullptr)
-				throw std::runtime_error("Empty Linked list");
-
-			Node* current = this->tail;
-			int value = current->item;
-
-			this->tail = this->tail->prev;
-			this->tail->next = nullptr;
-
-			delete current;
-			size--;
-
-			return value;
-		}
-
-		// display elements in the format of `0 -> 1 -> 2 -> nullptr;`
-		void display() { // O(n)
-			if(head == nullptr)
-				throw std::runtime_error("Empty Linked list");
-
-			Node* current = this->head;
-
-			while(current) {
-				std::cout << current->item << " -> ";
-				current = current->next;
-			}
-
-			std::cout << "nullptr;\n";
-		}
-
-		// no idea why I added this LOL
-		void displayleft() { // O(n)
-			if(tail == nullptr)
-				throw std::runtime_error("Empty Linked list");
-
-			Node* current = this->tail;
-
-			while(current) {
-				std::cout << current->item << " -> ";
-				current = current->prev;
-			}
-
-			std::cout << "nullptr;\n";
-		}
-
+private:
+	Node* head;
+	Node* tail;
+	size_t size;
 };
 
-#endif
-/*int main() {
-	LinkedList x = LinkedList();
-	
-	x.push(2);
-	x.pushleft(1);
-	x.push(3);
-	x.pushleft(0);
-	x.pushleft(-1);
+template<typename T>
+LinkedList<T>::LinkedList() : head(nullptr), tail(nullptr), size(0) {}
 
-	x.display();
-	std::cout << x.search(0);
-	//std::cout << x.get_size();
-}*/
+template<typename T>
+LinkedList<T>::~LinkedList() {
+	clear();
+}
+
+template<typename T>
+void LinkedList<T>::push(T val) { // O(1)
+	Node* node = new Node(val);
+
+	if(!head) {
+		head = node;
+		tail = node;
+
+	} else {
+		tail->next = node;
+		node->prev = tail;
+		tail = tail->next;
+	
+	}
+
+	size++;
+}
+
+template<typename T>
+void LinkedList<T>::pushleft(T val) { // O(1)
+	Node* node = new Node(val);
+
+	if(!head) {
+		head = node;
+		tail = node;
+
+	} else {
+		node->next = head;
+		head->prev = node;
+		head = node;
+
+	}
+
+	size++;
+}
+
+template<typename T>
+bool LinkedList<T>::search(T val) { // O(n)
+	Node* cur = head;
+	while(cur) {
+		if(cur->item == val)
+			return true;
+
+		cur = cur->next;
+	}
+	return false;
+}
+
+template<typename T>
+T LinkedList<T>::pop() { // O(1)
+	if(size == 0)
+		throw EmptyLinkedList("self explanatory lol");
+
+	T item = tail->item;
+	Node* cur = tail;
+
+	tail = tail->prev;
+	tail->next = nullptr;
+
+	delete cur;
+	size--;
+
+	return item;
+}
+
+template<typename T>
+T LinkedList<T>::popleft() { // O(1)
+	if(size == 0)
+		throw EmptyLinkedList("self explanatory lol");
+
+	T item = head->item;
+	Node* cur = head;
+
+	head = head->next;
+	head->prev = nullptr;
+
+	delete cur;
+	size--;
+
+	return item;
+}
+
+template<typename T>
+void LinkedList<T>::display() { // O(n)
+	Node* current = head;
+	while(current) {
+		std::cout << current->item << " -> ";
+		current = current->next;
+	}
+
+	std::cout << "nullptr\n";
+}
+
+template<typename T>
+void LinkedList<T>::reverse() { // O(n/2) or O(n)
+	Node* left = head;
+	Node* right = tail;
+	T temp;
+	
+	int start = 0;
+
+	while(start < (size/2)) {
+		temp = left->item;
+
+		left->item = right->item;
+		right->item = temp;
+		
+		start++;
+		left = left->next;
+		right = right->prev;
+	}
+
+}
+
+template<typename T>
+void LinkedList<T>::clear() { // O(n)
+	if(size == 0) return;
+
+	Node* next;
+	while(head) {
+		next = head->next;
+		delete head;
+
+		head = next;
+	}
+
+	head = nullptr;
+	tail = nullptr;
+	size = 0;
+};
+
+template<typename T>
+size_t LinkedList<T>::get_size() {
+	return size;
+}
+
+template<typename T>
+LinkedList<T>::Node* LinkedList<T>::get_head() {
+	return head;
+}
+
+template<typename T>
+LinkedList<T>::Node* LinkedList<T>::get_tail() {
+	return tail;
+}
+
+#endif
